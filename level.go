@@ -8,7 +8,7 @@ package level
 #include "leveldb/c.h"
 
 #cgo CFLAGS: -I lib/leveldb/include
-#cgo LDFLAGS: -lleveldb -lpthread
+#cgo LDFLAGS: -L lib/leveldb -lleveldb -lpthread
 
 
 static leveldb_t **db;
