@@ -7,7 +7,9 @@ package level
 #include <sys/types.h>
 #include "leveldb/c.h"
 
-#cgo LDFLAGS: -lleveldb -lpthread
+#cgo CFLAGS: -I ../../lib/leveldb/include
+#cgo LDFLAGS: -L../../lib/leveldb -lleveldb -lpthread
+
 
 static leveldb_t **db;
 static leveldb_writebatch_t **batch;
@@ -186,10 +188,8 @@ static void openDb(const char *name, int idx)
 static void closeDb(int idx)
 {
     if (batch[idx] != NULL && batch_cnt[idx] != 0) {
-        batch_flush(idx);
+        batch_flush(idx, batch[idx]);
     }
-    leveldb_writebatch_destroy(batch[idx]);
-    batch[idx] = NULL;
 
     if (errmsg[idx] != NULL) {
         leveldb_free(errmsg[idx]);
@@ -287,7 +287,7 @@ func Init(tables int) {
 		batchChan = make(chan batchInfo, 1024)
 		C.initDbEnv(C.size_t(tables))
 		go batchLoop()
-	}())
+	})
 }
 
 func Cleanup() {
@@ -387,6 +387,7 @@ func batchLoop() {
 				// lock
 				batchLock.Lock()
 				defer batchLock.Unlock()
+				println("do batch flush")
 				C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
 			}
 		case <-time.After(time.Second):
