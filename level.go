@@ -7,7 +7,7 @@ package level
 #include <sys/types.h>
 #include "leveldb/c.h"
 
-#cgo CFLAGS: -I ../../lib/leveldb/include
+#cgo CFLAGS: -I lib/leveldb/include
 #cgo LDFLAGS: -lleveldb -lpthread
 
 
