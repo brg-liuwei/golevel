@@ -105,16 +105,6 @@ static void *batch_get(int idx)
     return (void *)old_batch;
 }
 
-static void batch_sync(int max_idx)
-{
-    int i;
-    for (i = 0; i < max_idx; i++) {
-        if (db[i] != NULL && batch_cnt[i] != 0) {
-            batch_flush(i, batch[i]);
-        }
-    }
-}
-
 static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
 {
     if (batch[idx] == NULL) {
@@ -419,9 +409,7 @@ func batchLoop() {
 			C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
 			batchLock.Unlock()
 		case <-time.After(time.Second):
-			batchLock.Lock()
-			C.batch_sync(C.int(maxTables))
-			batchLock.Unlock()
+			batchSync()
 		}
 	}
 }
