@@ -97,8 +97,8 @@ static void batch_sync(int max_idx)
 {
     int i;
     for (i = 0; i < max_idx; i++) {
-        if (db[idx] != NULL && batch_cnt[idx] != 0) {
-            batch_flush(idx, batch[idx])
+        if (db[i] != NULL && batch_cnt[i] != 0) {
+            batch_flush(i, batch[i])
         }
     }
 }
