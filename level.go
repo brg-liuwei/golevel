@@ -93,6 +93,18 @@ static void batch_flush(int idx, void *batch)
     }
 }
 
+static void *batch_get(int idx)
+{
+    leveldb_writebatch_t *old_batch;
+    if (batch_cnt[idx] == 0) {
+        return NULL;
+    }
+    old_batch = batch[idx];
+    batch[idx] = NULL;
+    batch_cnt[idx] = 0;
+    return (void *)old_batch;
+}
+
 static void batch_sync(int max_idx)
 {
     int i;
@@ -105,7 +117,6 @@ static void batch_sync(int max_idx)
 
 static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
 {
-    void *ret = NULL;
     if (batch[idx] == NULL) {
         batch[idx] = leveldb_writebatch_create();
         if (batch[idx] == NULL) {
@@ -116,11 +127,9 @@ static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_le
     leveldb_writebatch_put(batch[idx], k, k_len, v, v_len);
     batch_cnt[idx]++;
     if (batch_cnt[idx] >= 10000) {
-        ret = (void *)batch[idx];
-        batch[idx] = NULL;
-        batch_cnt[idx] = 0;
+        return batch_get(idx);
     }
-    return ret;
+    return NULL;
 }
 
 static void *batch_delete(const char *k, size_t k_len, int idx)
@@ -389,23 +398,30 @@ func BatchDelete(table *string, k *string) error {
 
 var batchLock sync.Mutex
 
+func batchSync() {
+	for i := 0; i < maxTables; i++ {
+		spin.Lock()
+		batch := C.batch_get(C.int(i))
+		spin.UnLock()
+		if batch != unsafe.Pointer(nil) {
+			batchLock.Lock()
+			C.batch_flush(C.int(i), unsafe.Pointer(batch))
+			batchLock.Unlock()
+		}
+	}
+}
+
 func batchLoop() {
 	for {
 		select {
 		case bi := <-batchChan:
-			{
-				batchLock.Lock()
-				defer batchLock.Unlock()
-				C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
-			}
+			batchLock.Lock()
+			C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
+			batchLock.Unlock()
 		case <-time.After(time.Second):
-			{
-				batchLock.Lock()
-				defer batchLock.Unlock()
-				C.batch_sync(C.int(maxTables))
-			}
-		default:
-			time.Sleep(100 * time.Millisecond)
+			batchLock.Lock()
+			C.batch_sync(C.int(maxTables))
+			batchLock.Unlock()
 		}
 	}
 }
