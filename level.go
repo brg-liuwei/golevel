@@ -98,7 +98,7 @@ static void batch_sync(int max_idx)
     int i;
     for (i = 0; i < max_idx; i++) {
         if (db[i] != NULL && batch_cnt[i] != 0) {
-            batch_flush(i, batch[i])
+            batch_flush(i, batch[i]);
         }
     }
 }
@@ -402,7 +402,7 @@ func batchLoop() {
 			{
 				batchLock.Lock()
 				defer batchLock.Unlock()
-				C.batch_sync(maxTables)
+				C.batch_sync(C.int(maxTables))
 			}
 		default:
 			time.Sleep(100 * time.Millisecond)
