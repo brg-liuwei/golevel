@@ -93,6 +93,16 @@ static void batch_flush(int idx, void *batch)
     }
 }
 
+static void batch_sync(int max_idx)
+{
+    int i;
+    for (i = 0; i < max_idx; i++) {
+        if (db[idx] != NULL && batch_cnt[idx] != 0) {
+            batch_flush(idx, batch[idx])
+        }
+    }
+}
+
 static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
 {
     void *ret = NULL;
@@ -384,15 +394,15 @@ func batchLoop() {
 		select {
 		case bi := <-batchChan:
 			{
-				// lock
 				batchLock.Lock()
 				defer batchLock.Unlock()
-				println("do batch flush")
 				C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
 			}
 		case <-time.After(time.Second):
 			{
-				// TODO: force flush
+				batchLock.Lock()
+				defer batchLock.Unlock()
+				C.batch_sync(maxTables)
 			}
 		default:
 			time.Sleep(100 * time.Millisecond)
