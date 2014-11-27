@@ -105,7 +105,8 @@ static void *batch_get(int idx)
     return (void *)old_batch;
 }
 
-static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
+static void *batch_do(int op, const char *k, size_t k_len,
+    const char *v, size_t v_len, int idx)
 {
     if (batch[idx] == NULL) {
         batch[idx] = leveldb_writebatch_create();
@@ -114,7 +115,16 @@ static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_le
         }
         batch_cnt[idx] = 0;
     }
-    leveldb_writebatch_put(batch[idx], k, k_len, v, v_len);
+
+    switch (op) {
+    case 0: // write
+        leveldb_writebatch_put(batch[idx], k, k_len, v, v_len);
+    case 1: // delete
+        leveldb_writebatch_delete(batch[idx], k, k_len);
+    default:
+        return NULL;
+    }
+
     batch_cnt[idx]++;
     if (batch_cnt[idx] >= 10000) {
         return batch_get(idx);
@@ -122,21 +132,14 @@ static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_le
     return NULL;
 }
 
+static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
+{
+    return batch_do(0, k, k_len, NULL, 0, idx);
+}
+
 static void *batch_delete(const char *k, size_t k_len, int idx)
 {
-    if (batch[idx] == NULL) {
-        batch[idx] = leveldb_writebatch_create();
-        if (batch[idx] == NULL) {
-            abort();
-        }
-        batch_cnt[idx] = 0;
-    }
-    leveldb_writebatch_delete(batch[idx], k, k_len);
-    batch_cnt[idx]++;
-    if (batch_cnt[idx] >= 10000) {
-        return batch_get(idx);
-    }
-    return NULL;
+    return batch_do(1, k, k_len, NULL, 0, idx);
 }
 
 static int put(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
