@@ -124,7 +124,6 @@ static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_le
 
 static void *batch_delete(const char *k, size_t k_len, int idx)
 {
-    void *ret = NULL;
     if (batch[idx] == NULL) {
         batch[idx] = leveldb_writebatch_create();
         if (batch[idx] == NULL) {
@@ -135,11 +134,9 @@ static void *batch_delete(const char *k, size_t k_len, int idx)
     leveldb_writebatch_delete(batch[idx], k, k_len);
     batch_cnt[idx]++;
     if (batch_cnt[idx] >= 10000) {
-        ret = (void *)batch_cnt[idx];
-        batch[idx] = NULL;
-        batch_cnt[idx] = 0;
+        return batch_get(idx);
     }
-    return ret;
+    return NULL;
 }
 
 static int put(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
@@ -423,9 +420,8 @@ func batchLoop() {
 			batchLock.Lock()
 			C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
 			batchLock.Unlock()
-			_ = time.Second
-			//case <-time.After(time.Second):
-			//	batchSync()
+		case <-time.After(time.Second):
+			batchSync()
 		}
 	}
 }
