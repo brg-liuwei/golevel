@@ -242,6 +242,16 @@ static void iterSeekToFirst(void *itr)
     leveldb_iter_seek_to_first((leveldb_iterator_t *)itr);
 }
 
+static void iterSeekToLast(void *itr)
+{
+    leveldb_iter_seek_to_last((leveldb_iterator_t *)itr);
+}
+
+static void iterPrev(void *itr)
+{
+    leveldb_iter_prev((leveldb_iterator_t *)itr);
+}
+
 static void iterNext(void *itr)
 {
     leveldb_iter_next((leveldb_iterator_t *)itr);
@@ -509,6 +519,19 @@ func (this *Iter) SeekToFirst() {
 	if this.itr != nil {
 		this.valid = true
 		C.iterSeekToFirst(this.itr)
+	}
+}
+
+func (this *Iter) SeekToLast() {
+	if this.itr != nil {
+		this.valid = true
+		C.iterSeekToLast(this.itr)
+	}
+}
+
+func (this *Iter) Prev() {
+	if this.valid {
+		C.iterPrev(this.itr)
 	}
 }
 
