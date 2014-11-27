@@ -423,6 +423,7 @@ func batchLoop() {
 			batchLock.Lock()
 			C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
 			batchLock.Unlock()
+			_ = time.Second
 			//case <-time.After(time.Second):
 			//	batchSync()
 		}
