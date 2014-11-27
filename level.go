@@ -234,7 +234,7 @@ static void iterDestroy(void *itr)
 
 static void iterSeek(void *itr, const char *k, size_t k_len)
 {
-    leveldb_iter_seek((leveldb_iterator_t *)itr, k, k_len, k, k_len);
+    leveldb_iter_seek((leveldb_iterator_t *)itr, k, k_len);
 }
 
 static void iterSeekToFirst(void *itr)
