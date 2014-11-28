@@ -29,25 +29,25 @@ static void initDbEnv(size_t max_tables)
 
     db = (leveldb_t **)calloc(max_tables, sizeof(leveldb_t *));
     if (db == NULL) {
-        printf("init db env error(calloc db), set tables size: %lu\n", max_tables);
+        fprintf(stderr, "init db env error(calloc db), set tables size: %lu\n", max_tables);
         abort();
     }
 
     errmsg = (char **)calloc(max_tables, sizeof(char *));
     if (errmsg == NULL) {
-        printf("init db env error(calloc errmsg), set tables size: %lu\n", max_tables);
+        fprintf(stderr, "init db env error(calloc errmsg), set tables size: %lu\n", max_tables);
         abort();
     }
 
     batch = (leveldb_writebatch_t **)calloc(max_tables, sizeof(leveldb_writebatch_t *));
     if (batch == NULL) {
-        printf("init db env error(calloc writebatch), set tables size: %lu\n", max_tables);
+        fprintf(stderr, "init db env error(calloc writebatch), set tables size: %lu\n", max_tables);
         abort();
     }
 
     batch_cnt = (size_t *)calloc(max_tables, sizeof(size_t));
     if (batch_cnt == NULL) {
-        printf("init db env error(calloc batch_cnt), set tables size: %lu\n", max_tables);
+        fprintf(stderr, "init db env error(calloc batch_cnt), set tables size: %lu\n", max_tables);
         abort();
     }
 }
@@ -88,7 +88,11 @@ static void batch_flush(int idx, void *batch)
 {
     if (batch) {
         leveldb_write(db[idx], wopt, (leveldb_writebatch_t *)batch, &errmsg[idx]);
-        leveldb_writebatch_clear((leveldb_writebatch_t *)batch);
+        if (errmsg[idx] != NULL) {
+            fprintf(stderr, "batch flush errmsg[%d]: %s\n", idx, errmsg[idx]);
+            errmsg[idx] = NULL;
+        }
+        // leveldb_writebatch_clear((leveldb_writebatch_t *)batch);
         leveldb_writebatch_destroy((leveldb_writebatch_t *)batch);
     }
 }
@@ -111,6 +115,7 @@ static void *batch_do(int op, const char *k, size_t k_len,
     if (batch[idx] == NULL) {
         batch[idx] = leveldb_writebatch_create();
         if (batch[idx] == NULL) {
+            fprintf(stderr, "batch_do writebatch create no mem\n");
             abort();
         }
         batch_cnt[idx] = 0;
@@ -119,8 +124,10 @@ static void *batch_do(int op, const char *k, size_t k_len,
     switch (op) {
     case 0: // write
         leveldb_writebatch_put(batch[idx], k, k_len, v, v_len);
+        break;
     case 1: // delete
         leveldb_writebatch_delete(batch[idx], k, k_len);
+        break;
     default:
         return NULL;
     }
@@ -147,8 +154,7 @@ static int put(const char *k, size_t k_len, const char *v, size_t v_len, int idx
     leveldb_put(db[idx], wopt, k, k_len, v, v_len, &errmsg[idx]);
 
     if (errmsg[idx] != NULL) {
-        printf("put k, v failed: %s\n", errmsg[idx]);
-        leveldb_free(errmsg[idx]);
+        fprintf(stderr, "put %s -> %s failed: %s\n", k, v, errmsg[idx]);
         errmsg[idx] = NULL;
         return -1;
     }
@@ -162,8 +168,7 @@ static char *get(const char *k, size_t k_len, size_t *v_len, int idx)
     val = leveldb_get(db[idx], ropt, k, k_len, v_len, &errmsg[idx]);
 
     if (errmsg[idx] != NULL) {
-        printf("get k failed: %s\n", errmsg[idx]);
-        leveldb_free(errmsg[idx]);
+        fprintf(stderr, "get %s failed: %s\n", k, errmsg[idx]);
         errmsg[idx] = NULL;
     }
     return val;
@@ -174,8 +179,7 @@ static int del(const char *k, size_t k_len, int idx)
     leveldb_delete(db[idx], wopt, k, k_len, &errmsg[idx]);
 
     if (errmsg[idx] != NULL) {
-        printf("delete k failed: %s\n", errmsg[idx]);
-        leveldb_free(errmsg[idx]);
+        fprintf(stderr, "delete %s failed: %s\n", k, errmsg[idx]);
         errmsg[idx] = NULL;
         return -1;
     }
@@ -187,8 +191,7 @@ static void openDb(const char *name, int idx)
     db[idx] = leveldb_open(opt, name, &errmsg[idx]);
 
     if (errmsg[idx] != NULL) {
-        printf("open levelDb %s error: %s\n", name, errmsg[idx]);
-        leveldb_free(errmsg[idx]);
+        fprintf(stderr, "open leveldb %s error: %s\n", name, errmsg[idx]);
         errmsg[idx] = NULL;
         abort();
     }
@@ -201,7 +204,6 @@ static void closeDb(int idx)
     }
 
     if (errmsg[idx] != NULL) {
-        leveldb_free(errmsg[idx]);
         errmsg[idx] = NULL;
     }
     if (opt != NULL) {
