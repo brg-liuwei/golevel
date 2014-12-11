@@ -141,7 +141,7 @@ static void *batch_do(int op, const char *k, size_t k_len,
 
 static void *batch_write(const char *k, size_t k_len, const char *v, size_t v_len, int idx)
 {
-    return batch_do(0, k, k_len, NULL, 0, idx);
+    return batch_do(0, k, k_len, v, v_len, idx);
 }
 
 static void *batch_delete(const char *k, size_t k_len, int idx)
