@@ -21,7 +21,9 @@ cache:
 install:
   - if [ ! -d /usr/local ]; then sudo mkdir -p /usr/local; fi
   - if [ ! -d /opt/downloads-cache ]; then mkdir -p /opt/downloads-cache; fi
-  - if [ ! -d /opt/downloads-cache/leveldb ]; then git clone https://github.com/google/leveldb.git /opt/downloads-cache/leveldb && sudo ln -s /opt/downloads-cache/leveldb /usr/local/leveldb; fi
+  - if [ ! -d /opt/downloads-cache/leveldb ]; then git clone https://github.com/google/leveldb.git /opt/downloads-cache/leveldb; fi
+  - sudo rm -rf /usr/local/leveldb
+  - sudo ln -s /opt/downloads-cache/leveldb /usr/local/leveldb
 
 script:
   - cd /opt/downloads-cache/leveldb
@@ -31,8 +33,8 @@ script:
   - git branch | grep v1.8 | xargs git branch -D
   - git checkout -b v1.8 v1.8
   - make > build.log 2>&1 || (cat build.log && exit 1)
-  - ls include
-  - ls include/leveldb
+  - ls /usr/local/leveldb
+  - ls /usr/local/leveldb/include/leveldb
   - cd ~
   - echo $PKG_CONFIG_PATH
   - pkg-config --cflags --libs leveldb
