@@ -1,5 +1,7 @@
 # golevel
 
+[![Build Status](https://travis-ci.org/brg-liuwei/golevel.svg?branch=master)](https://travis-ci.org/brg-liuwei/golevel)
+
 golang lib of leveldb  
 
 ### Install leveldb into path `/usr/local/leveldb`:
@@ -11,12 +13,10 @@ golang lib of leveldb
 ### Install:
 
     export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${GOPATH}/src/github.com/brg-liuwei/golevel
-    export LD_LIBRARY_PATH=/usr/local/leveldb
     go get -u github.com/brg-liuwei/golevel
 
 ### Example
 
-    // file: main.go
     package main
     
     import (
@@ -47,17 +47,4 @@ golang lib of leveldb
 	    	log.Fatal("level.Get(", key, ") = ", v, ", ", val, " expected")
 	    }
     }
-
-### Compile and run your code with `golevel`
-
-    export PKG_CONFIG_PATH=${GOPATH}/src/github.com/brg-liuwei/golevel:${PKG_CONFIG_PATH}
-    go build -o a.out main.go
-
-    export LD_LIBRARY_PATH=/usr/local/leveldb:${LD_LIBRARY_PATH}
-    ./a.out
-
-### Run test case
-
-    export PKG_CONFIG_PATH=${GOPATH}/src/github.com/brg-liuwei/golevel:${PKG_CONFIG_PATH}
-    go test github.com/brg-liuwei/golevel
 

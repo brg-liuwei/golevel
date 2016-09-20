@@ -1,0 +1,33 @@
+sudo: required
+
+os: linux
+
+language: go
+
+go:
+  - 1.5
+  - 1.6
+  - tip
+
+env:
+  global:
+    - LEVELDB_PATH=/usr/local/leveldb
+    - GOPATH=/opt/gopath
+    - PKG_CONFIG_PATH=${GOPATH}/src/github.com/brg-liuwei/golevel
+
+cache:
+  directories:
+    - ${LEVELDB_PATH}
+
+install:
+  - if [ ! -d ${GOPATH} ]; then mkdir -p ${GOPATH}; fi
+  - if [ ! -d /usr/local ]; then mkdir -p /usr/local; fi
+  - if [ ! -d ${LEVELDB_PATH} ]; then git clone https://github.com/google/leveldb.git ${LEVELDB_PATH}; fi
+
+script:
+  - cd ${LEVELDB_PATH}
+  - git checkout -b v1.8 v1.8
+  - make > build.log 2>&1 || (cat build.log && exit 1)
+  - go get -u github.com/brg-liuwei/golevel > build.log 2>&1 || (cat build.log && exit 1)
+  - go test -v github.com/brg-liuwei/golevel
+
