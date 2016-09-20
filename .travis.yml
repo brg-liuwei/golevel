@@ -25,6 +25,10 @@ install:
 
 script:
   - cd /opt/downloads-cache/leveldb
+  - make clean
+  - git checkout master
+  - make clean
+  - git branch | grep v1.8 | xargs git branch -D
   - git checkout -b v1.8 v1.8
   - make > build.log 2>&1 || (cat build.log && exit 1)
   - cd ~
