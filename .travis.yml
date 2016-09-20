@@ -29,5 +29,5 @@ script:
   - make > build.log 2>&1 || (cat build.log && exit 1)
   - cd ~
   - go get -u github.com/brg-liuwei/golevel > build.log 2>&1 || (cat build.log && exit 1)
-  - go test -v github.com/brg-liuwei/golevel
+  - LD_LIBRARY_PATH=/usr/local/leveldb go test -v github.com/brg-liuwei/golevel
 

@@ -48,3 +48,6 @@ golang lib of leveldb
 	    }
     }
 
+### Run test case:
+
+    LD_LIBRARY_PATH=/usr/local/leveldb go test -v github.com/brg-liuwei/golevel
