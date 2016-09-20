@@ -12,21 +12,22 @@ go:
 
 env:
   global:
-    - LEVELDB_PATH=/usr/local/leveldb
     - PKG_CONFIG_PATH=${GOPATH}/src/github.com/brg-liuwei/golevel
 
 cache:
   directories:
-    - ${LEVELDB_PATH}
+    - /opt/downloads-cache
 
 install:
   - if [ ! -d /usr/local ]; then sudo mkdir -p /usr/local; fi
-  - if [ ! -d ${LEVELDB_PATH} ]; then sudo git clone https://github.com/google/leveldb.git ${LEVELDB_PATH}; fi
+  - if [ ! -d /opt/downloads-cache ]; then mkdir -p /opt/downloads-cache; fi
+  - if [ ! -d /opt/downloads-cache/leveldb ]; then git clone https://github.com/google/leveldb.git /opt/downloads-cache/leveldb && sudo ln -s /opt/downloads-cache/leveldb /usr/local/leveldb; fi
 
 script:
-  - cd ${LEVELDB_PATH}
-  - sudo git checkout -b v1.8 v1.8
-  - sudo make > build.log 2>&1 || (cat build.log && exit 1)
+  - cd /opt/downloads-cache/leveldb
+  - git checkout -b v1.8 v1.8
+  - make > build.log 2>&1 || (cat build.log && exit 1)
+  - cd ~
   - go get -u github.com/brg-liuwei/golevel > build.log 2>&1 || (cat build.log && exit 1)
   - go test -v github.com/brg-liuwei/golevel
 
