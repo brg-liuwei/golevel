@@ -7,9 +7,8 @@ package golevel
 #include <sys/types.h>
 #include "leveldb/c.h"
 
-#cgo CFLAGS: -I lib/leveldb/include
-#cgo LDFLAGS: -L lib/leveldb -lleveldb -lpthread
-
+#cgo pkg-config: --cflags --libs leveldb
+#cgo LDFLAGS: -lpthread
 
 static leveldb_t **db;
 static leveldb_writebatch_t **batch;

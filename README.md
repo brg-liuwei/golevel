@@ -1,70 +1,63 @@
 # golevel
-=======
 
-## golang lib of leveldb  
+golang lib of leveldb  
 
-### *Install:*
-    go get github.com/brg-liuwei/golevel  
+### Install leveldb into path `/usr/local/leveldb`:
 
-Before Using this lib, you need to do as follows:  
+    git clone https://github.com/google/leveldb.git /usr/local/leveldb
+    git checkout -b v1.8 v1.8
+    make
 
-### *Linux platform:* 
-    cp -r /your/gopath/src/github/brg-liuwei/golevel/lib/leveldb/include/leveldb /usr/include  
-    cp lib/leveldb/libleveldb.so /usr/lib  
+### Install:
 
-### *MacOS platform:*
-    cp -r /your/gopath/src/github/brg-liuwei/golevel/lib/leveldb/include/leveldb /usr/include  
-    cp lib/leveldb/libleveldb.dylib /usr/lib  
-
-### *Windows platform:*  
-    Read my code and implements a windows leveldb go lib for yourself :)
-
+    export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:${GOPATH}/src/github.com/brg-liuwei/golevel
+    export LD_LIBRARY_PATH=/usr/local/leveldb
+    go get -u github.com/brg-liuwei/golevel
 
 ### Example
 
+    // file: main.go
     package main
     
     import (
-    	"fmt"
-    	"runtime"
-    	"sync"
-    	"time"
+        "log"
 
     	level "github.com/brg-liuwei/golevel"
     )
     
     func main() {
-    	runtime.GOMAXPROCS(runtime.NumCPU())
-    	level.Init(2)
-    	table := "db"
-    	level.Open(&table)
-    
-    	key := "Key"
-    	val := "Value"
-    	var wg sync.WaitGroup
-    	for i := 0; i != 4; i++ {
-    		wg.Add(1)
-    		go func(j int) {
-    			for k := 10000 * j; k < 10000*(j+1); k++ {
-    				key := fmt.Sprint(key, k)
-    				val := fmt.Sprint(val, k)
-    				level.BatchWrite(&table, &key, &val)
-    			}
-    			wg.Done()
-    		}(i)
-    	}
-    	wg.Wait()
-    	time.Sleep(100 * time.Millisecond)
-    
-    	k := fmt.Sprint(key, 100)
-    	v, _ := level.Get(&table, &k)
-    	fmt.Println(k, ":", v)
-    
-    	k = fmt.Sprint(key, 30100)
-    	v, _ = level.Get(&table, &k)
-    	fmt.Println(k, ":", v)
-    
-    	level.Close(&table)
-    	level.Cleanup()
+	    level.Init(1) // how many tables prepareing to open
+	    defer level.Cleanup()
+
+	    table := "./test.db"
+
+	    level.Open(&table)
+	    defer level.Close(&table)
+
+	    key := "Key"
+	    val := "Value"
+
+	    if err := level.Put(&table, &key, &val); err != nil {
+            log.Fatal("level.Put err: ", err)
+	    }
+
+	    if v, err := level.Get(&table, &key); err != nil {
+	    	log.Fatal("level.Get error: ", err)
+	    } else if v != val {
+	    	log.Fatal("level.Get(", key, ") = ", v, ", ", val, " expected")
+	    }
     }
+
+### Compile and run your code with `golevel`
+
+    export PKG_CONFIG_PATH=${GOPATH}/src/github.com/brg-liuwei/golevel:${PKG_CONFIG_PATH}
+    go build -o a.out main.go
+
+    export LD_LIBRARY_PATH=/usr/local/leveldb:${LD_LIBRARY_PATH}
+    ./a.out
+
+### Run test case
+
+    export PKG_CONFIG_PATH=${GOPATH}/src/github.com/brg-liuwei/golevel:${PKG_CONFIG_PATH}
+    go test github.com/brg-liuwei/golevel
 
