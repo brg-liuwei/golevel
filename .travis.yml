@@ -31,7 +31,11 @@ script:
   - git branch | grep v1.8 | xargs git branch -D
   - git checkout -b v1.8 v1.8
   - make > build.log 2>&1 || (cat build.log && exit 1)
+  - ls include
+  - ls include/leveldb
   - cd ~
-  - go get -u github.com/brg-liuwei/golevel > build.log 2>&1 || (cat build.log && exit 1)
+  - echo $PKG_CONFIG_PATH
+  - pkg-config --cflags --libs leveldb
+  - go get -u github.com/brg-liuwei/golevel
   - LD_LIBRARY_PATH=/usr/local/leveldb go test -v github.com/brg-liuwei/golevel
 
