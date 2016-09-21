@@ -1,5 +1,6 @@
 prefix=/usr/local/leveldb
-libdir=${prefix}
+exec_prefix=${prefix}
+libdir=${exec_prefix}
 includedir=${prefix}/include
 libname=leveldb
 
@@ -8,4 +9,3 @@ Description: leveldb v1.8 for github.com/brg-liuwei/golevel
 Version: 1.8
 Libs: -L${libdir} -l${libname}
 Cflags: -I${includedir}
-

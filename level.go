@@ -205,18 +205,6 @@ static void closeDb(int idx)
     if (errmsg[idx] != NULL) {
         errmsg[idx] = NULL;
     }
-    if (opt != NULL) {
-        leveldb_options_destroy(opt);
-        opt = NULL;
-    }
-    if (ropt != NULL) {
-        leveldb_readoptions_destroy(ropt);
-        ropt = NULL;
-    }
-    if (wopt != NULL) {
-        leveldb_writeoptions_destroy(wopt);
-        wopt = NULL;
-    }
     if (db[idx] != NULL) {
         leveldb_close(db[idx]);
         db[idx] = NULL;
@@ -411,7 +399,9 @@ func batchSync() {
 		spin.UnLock()
 		if batch != unsafe.Pointer(nil) {
 			batchLock.Lock()
-			C.batch_flush(C.int(i), unsafe.Pointer(batch))
+			if batch != unsafe.Pointer(nil) {
+				C.batch_flush(C.int(i), unsafe.Pointer(batch))
+			}
 			batchLock.Unlock()
 		}
 	}
@@ -422,7 +412,9 @@ func batchLoop() {
 		select {
 		case bi := <-batchChan:
 			batchLock.Lock()
-			C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
+			if bi.batch != unsafe.Pointer(nil) {
+				C.batch_flush(C.int(bi.idx), unsafe.Pointer(bi.batch))
+			}
 			batchLock.Unlock()
 		case <-time.After(time.Second):
 			batchSync()
