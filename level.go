@@ -7,7 +7,7 @@ package golevel
 #include <sys/types.h>
 #include "leveldb/c.h"
 
-#cgo pkg-config: --cflags --libs leveldb
+#cgo pkg-config: leveldb
 
 static leveldb_t **db;
 static leveldb_writebatch_t **batch;
