@@ -8,7 +8,6 @@ package golevel
 #include "leveldb/c.h"
 
 #cgo pkg-config: --cflags --libs leveldb
-#cgo LDFLAGS: -lpthread
 
 static leveldb_t **db;
 static leveldb_writebatch_t **batch;
